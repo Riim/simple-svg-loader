@@ -1,0 +1,26 @@
+{
+  "name": "simple-svg-loader",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Riim/simple-svg-loader.git"
+  },
+  "author": "Dmitry Vibe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Riim/simple-svg-loader/issues"
+  },
+  "homepage": "https://github.com/Riim/simple-svg-loader#readme",
+  "dependencies": {
+    "loader-utils": "^0.2.15",
+    "svgo": "^0.6.6",
+    "uuid": "^2.0.2",
+    "xmldom": "^0.1.22",
+    "xpath": "0.0.23"
+  }
+}
