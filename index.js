@@ -3,7 +3,6 @@ var uuid = require('uuid');
 var xmldom = require('xmldom');
 var xpath = require('xpath');
 var SVGO = require('svgo');
-
 var loaderUtils = require('loader-utils');
 
 module.exports = function(content) {
