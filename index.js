@@ -55,11 +55,11 @@ module.exports = function(content) {
 		function(result) {
 			callback(
 				null,
-				'if (document.body) { document.body.insertAdjacentHTML(\'beforeend\', ' +
+				'(function _() { if (document.body) { document.body.insertAdjacentHTML(\'beforeend\', ' +
 					JSON.stringify(
 						'<svg xmlns="http://www.w3.org/2000/svg" style="display:none">' + result.data + '</svg>'
 					) +
-					'); }'
+					'); } else { setTimeout(_, 100); } })();'
 			);
 		}
 	);
