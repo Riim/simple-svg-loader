@@ -26,8 +26,8 @@ module.exports = function(content) {
 
 	targetEl.setAttribute('id', query.id || path.basename(this.resourcePath, '.svg'));
 
-	for (var el = svgEl.firstChild; el; el = el.nextSibling) {
-		targetEl.appendChild(targetDoc.importNode(el, true));
+	for (var node = svgEl.firstChild; node; node = node.nextSibling) {
+		targetEl.appendChild(targetDoc.importNode(node, true));
 	}
 
 	var nodesWithId = xpath.select('/*/*[@id]', targetDoc);

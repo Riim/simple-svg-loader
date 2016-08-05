@@ -45,7 +45,7 @@ require('simple-svg!./icons/home.svg');
 ### with change id:
 
 ```js
-require('simple-svg!./icons/home.svg?id=icon-home');
+require('simple-svg?id=icon-home!./icons/home.svg');
 ```
 ```html
 <svg viewBox="0 0 20 20" class="icon"><use xlink:href="#icon-home"></use></svg>
