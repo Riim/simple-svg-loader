@@ -1,66 +1,56 @@
-var path = require('path');
-var uuid = require('uuid');
-var xmldom = require('xmldom');
-var xpath = require('xpath');
-var SVGO = require('svgo');
-var loaderUtils = require('loader-utils');
+let path = require('path');
+let uuid = require('uuid');
+let xmldom = require('xmldom');
+let xpath = require('xpath');
+let SVGO = require('svgo');
+let loaderUtils = require('loader-utils');
 
 module.exports = function(content) {
-	if (this.cacheable) {
-		this.cacheable();
-	}
+	let callback = this.async();
 
-	var callback = this.async();
-	var query = loaderUtils.parseQuery(this.query);
+	let sourceDoc = new xmldom.DOMParser().parseFromString(content, 'text/xml');
+	let targetDoc = new xmldom.DOMParser().parseFromString('<symbol></symbol>', 'text/xml');
+	let sourceDocEl = sourceDoc.documentElement;
+	let targetDocEl = targetDoc.documentElement;
 
-	var svgDoc = new xmldom.DOMParser().parseFromString(content, 'text/xml');
-	var svgEl = svgDoc.documentElement;
-	var targetDoc = new xmldom.DOMParser().parseFromString('<symbol></symbol>', 'text/xml');
-	var targetEl = targetDoc.documentElement;
+	['viewBox', 'height', 'width', 'preserveAspectRatio'].forEach((name) => {
+		let value = sourceDocEl.getAttribute(name);
 
-	['viewBox', 'height', 'width', 'preserveAspectRatio'].forEach(function(name) {
-		if (svgEl.hasAttribute(name)) {
-			targetEl.setAttribute(name, svgEl.getAttribute(name));
+		if (value) {
+			targetDocEl.setAttribute(name, value);
 		}
 	});
 
-	targetEl.setAttribute('id', query.id || path.basename(this.resourcePath, '.svg'));
+	targetDocEl.setAttribute(
+		'id',
+		this.resourceQuery && loaderUtils.parseQuery(this.resourceQuery).id || path.basename(this.resourcePath, '.svg')
+	);
 
-	for (var node = svgEl.firstChild; node; node = node.nextSibling) {
-		targetEl.appendChild(targetDoc.importNode(node, true));
+	for (let node = sourceDocEl.firstChild; node; node = node.nextSibling) {
+		targetDocEl.appendChild(targetDoc.importNode(node, true));
 	}
 
-	var nodesWithId = xpath.select('/*/*[@id]', targetDoc);
-
-	nodesWithId.forEach(function(node) {
-		var id = node.getAttribute('id');
-		var newId = uuid.v4() + '-' + id;
+	xpath.select('/*/*[@id]', targetDocEl).forEach((node) => {
+		let id = node.getAttribute('id');
+		let newId = uuid.v4() + '-' + id;
 
 		node.setAttribute('id', newId);
 
-		var attributesUsingId = xpath.select("//attribute::*[contains(., 'url(#" + id + ")')]", targetDoc);
-
-		attributesUsingId.forEach(function(attr) {
+		xpath.select("//attribute::*[contains(., 'url(#" + id + ")')]", targetDocEl).forEach((attr) => {
 			attr.value = 'url(#' + newId + ')';
 		});
 	});
 
-	var markup = new xmldom.XMLSerializer().serializeToString(targetDoc);
-	var svgo = new SVGO({
+	new SVGO({
 		plugins: [{ cleanupIDs: false }]
+	}).optimize(new xmldom.XMLSerializer().serializeToString(targetDoc), (result) => {
+		callback(
+			null,
+			'(function _() { if (document.body) { document.body.insertAdjacentHTML(\'beforeend\', ' +
+				JSON.stringify(
+					'<svg xmlns="http://www.w3.org/2000/svg" style="display:none">' + result.data + '</svg>'
+				) +
+				'); } else { setTimeout(_, 100); } })();'
+		);
 	});
-
-	svgo.optimize(
-		markup,
-		function(result) {
-			callback(
-				null,
-				'(function _() { if (document.body) { document.body.insertAdjacentHTML(\'beforeend\', ' +
-					JSON.stringify(
-						'<svg xmlns="http://www.w3.org/2000/svg" style="display:none">' + result.data + '</svg>'
-					) +
-					'); } else { setTimeout(_, 100); } })();'
-			);
-		}
-	);
 };
