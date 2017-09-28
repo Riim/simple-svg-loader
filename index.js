@@ -30,14 +30,20 @@ module.exports = function(content) {
 		targetDocEl.appendChild(targetDoc.importNode(node, true));
 	}
 
-	xpath.select('/*/*[@id]', targetDocEl).forEach((node) => {
-		let id = node.getAttribute('id');
-		let newId = uuid.v4() + '-' + id;
+	['/*/*[@id]', '/*/*/*[@id]'].forEach((selector) => {
+		xpath.select(selector, targetDocEl).forEach((node) => {
+			let id = node.getAttribute('id');
+			let newId = uuid.v4() + '-' + id;
 
-		node.setAttribute('id', newId);
+			node.setAttribute('id', newId);
 
-		xpath.select("//attribute::*[contains(., 'url(#" + id + ")')]", targetDocEl).forEach((attr) => {
-			attr.value = 'url(#' + newId + ')';
+			xpath.select("//@*[contains(., '#" + id + "')]", targetDocEl).forEach((attr) => {
+				if (attr.value == '#' + id) {
+					attr.value = '#' + newId;
+				} else if (attr.value == 'url(#' + id + ')') {
+					attr.value = 'url(#' + newId + ')';
+				}
+			});
 		});
 	});
 
