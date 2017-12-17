@@ -13,31 +13,31 @@ module.exports = function(content) {
 	let sourceDocEl = sourceDoc.documentElement;
 	let targetDocEl = targetDoc.documentElement;
 
-	['viewBox', 'height', 'width', 'preserveAspectRatio'].forEach((name) => {
-		let value = sourceDocEl.getAttribute(name);
+	let attrs = sourceDocEl.attributes;
 
-		if (value) {
-			targetDocEl.setAttribute(name, value);
-		}
-	});
+	for (let i = 0, l = attrs.length; i < l; i++) {
+		let attr = attrs.item(i);
+		targetDocEl.setAttribute(attr.name, attr.value);
+	}
 
 	targetDocEl.setAttribute(
 		'id',
-		this.resourceQuery && loaderUtils.parseQuery(this.resourceQuery).id || path.basename(this.resourcePath, '.svg')
+		(this.resourceQuery && loaderUtils.parseQuery(this.resourceQuery).id) ||
+			path.basename(this.resourcePath, '.svg')
 	);
 
 	for (let node = sourceDocEl.firstChild; node; node = node.nextSibling) {
 		targetDocEl.appendChild(targetDoc.importNode(node, true));
 	}
 
-	['/*/*[@id]', '/*/*/*[@id]'].forEach((selector) => {
-		xpath.select(selector, targetDocEl).forEach((node) => {
+	['/*/*[@id]', '/*/*/*[@id]'].forEach(selector => {
+		xpath.select(selector, targetDocEl).forEach(node => {
 			let id = node.getAttribute('id');
 			let newId = uuid.v4() + '-' + id;
 
 			node.setAttribute('id', newId);
 
-			xpath.select("//@*[contains(., '#" + id + "')]", targetDocEl).forEach((attr) => {
+			xpath.select("//@*[contains(., '#" + id + "')]", targetDocEl).forEach(attr => {
 				if (attr.value == '#' + id) {
 					attr.value = '#' + newId;
 				} else if (attr.value == 'url(#' + id + ')') {
@@ -49,14 +49,18 @@ module.exports = function(content) {
 
 	new SVGO({
 		plugins: [{ cleanupIDs: false }]
-	}).optimize(new xmldom.XMLSerializer().serializeToString(targetDoc), (result) => {
-		callback(
-			null,
-			'(function _() { if (document.body) { document.body.insertAdjacentHTML(\'beforeend\', ' +
-				JSON.stringify(
-					'<svg xmlns="http://www.w3.org/2000/svg" style="display:none">' + result.data + '</svg>'
-				) +
-				'); } else { setTimeout(_, 100); } })();'
-		);
-	});
+	})
+		.optimize(new xmldom.XMLSerializer().serializeToString(targetDoc))
+		.then(result => {
+			callback(
+				null,
+				"(function _() { if (document.body) { document.body.insertAdjacentHTML('beforeend', " +
+					JSON.stringify(
+						'<svg xmlns="http://www.w3.org/2000/svg" style="display:none">' +
+							result.data +
+							'</svg>'
+					) +
+					'); } else { setTimeout(_, 100); } })();'
+			);
+		});
 };

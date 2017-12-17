@@ -1,6 +1,6 @@
 {
   "name": "simple-svg-loader",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,9 +18,9 @@
   "homepage": "https://github.com/Riim/simple-svg-loader#readme",
   "dependencies": {
     "loader-utils": "^1.1.0",
-    "svgo": "^0.7.2",
+    "svgo": "^1.0.3",
     "uuid": "^3.1.0",
     "xmldom": "^0.1.27",
-    "xpath": "0.0.24"
+    "xpath": "0.0.27"
   }
 }
