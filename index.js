@@ -8,6 +8,8 @@ let loaderUtils = require('loader-utils');
 module.exports = function(content) {
 	let callback = this.async();
 
+	let removeAttributes = this.query.removeAttributes;
+
 	let sourceDoc = new xmldom.DOMParser().parseFromString(content, 'text/xml');
 	let targetDoc = new xmldom.DOMParser().parseFromString('<symbol></symbol>', 'text/xml');
 	let sourceDocEl = sourceDoc.documentElement;
@@ -17,7 +19,10 @@ module.exports = function(content) {
 
 	for (let i = 0, l = attrs.length; i < l; i++) {
 		let attr = attrs.item(i);
-		targetDocEl.setAttribute(attr.name, attr.value);
+
+		if (!removeAttributes || removeAttributes.indexOf(attr.name) == -1) {
+			targetDocEl.setAttribute(attr.name, attr.value);
+		}
 	}
 
 	targetDocEl.setAttribute(
